@@ -22,7 +22,7 @@ def apply_perturbations(paragraphs_df: pd.DataFrame, out_path: str, num_paragrap
     with tqdm(total=num_paragraphs, desc="Applying perturbations") as pbar:
         perturbed_paragraphs_df = pd.DataFrame(columns=['passage_id', 'text', 'label'])
         for index, row in paragraphs_df.iterrows():
-            perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [' '.join(row.sentences)] + ['None']
+            perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [' '.join(row.sentences)] + ['Orig']
             for sub_idx in range(4):
                 perturbed_sentences = apply_sub_perturbation(row.sentences, row.sub_sentences, sub_idx)
                 perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [' '.join(perturbed_sentences)] + [f'sub_{sub_idx}']
