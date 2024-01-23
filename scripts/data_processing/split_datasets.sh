@@ -1,0 +1,1 @@
+python train_test_split.py -d wiki -l en
