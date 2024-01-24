@@ -2,6 +2,7 @@ from typing import Dict, List
 import pandas as pd
 import argparse
 import random
+import os
 
 def load_dataframe(src_path: str) -> pd.DataFrame:
     df = pd.read_csv(src_path, sep='\t')
@@ -40,9 +41,13 @@ def main():
     args = parser.parse_args()
 
     src_path = f'../../data/src/all_paragraphs/{args.dataset}/{args.language}.tsv'
-    train_out_path = f'../../data/src/train_eval_splits/{args.dataset}/{args.language}_train.tsv'
-    eval_out_path = f'../../data/src/train_eval_splits/{args.dataset}/{args.language}_eval.tsv'
+    out_dir = f'../../data/src/train_eval_splits/{args.dataset}'
+    train_out_path = os.path.join(out_dir, f'{args.language}_train.tsv')
+    eval_out_path = os.path.join(out_dir, f'{args.language}_eval.tsv')
 
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    
     df = load_dataframe(src_path)
     doc_counts = count_documents_paragraphs(df)
     
