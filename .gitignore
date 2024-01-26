@@ -163,3 +163,5 @@ data/
 *~
 .idea/
 *nohup.out
+models/*
+scripts/results/*
