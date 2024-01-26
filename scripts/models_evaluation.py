@@ -40,7 +40,7 @@ def main():
     bar_plot = sns.barplot(results_df, x='dataset', y='score', hue='model')
     sns.move_legend(bar_plot, 'lower center', bbox_to_anchor=(1, 1))
     fig = bar_plot.get_figure()
-    fig.savefig('model_performances.png', bbox_inches='tight')
+    fig.savefig('results/model_performances.png', bbox_inches='tight')
 
 
 if __name__ == '__main__':
