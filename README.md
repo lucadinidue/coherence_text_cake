@@ -2,8 +2,8 @@ To Do:
 
 1) Dataset Construction
 
-  - [ ] Create 80-20 splits
-  - [ ] Apply all perturbations
+  - [X] Create 80-20 splits
+  - [X] Apply all perturbations
 
 3) Monolingual Experiments
   - [ ] In Domain
