@@ -4,14 +4,17 @@ import argparse
 import random
 import os
 
+
 def load_dataframe(src_path: str) -> pd.DataFrame:
     df = pd.read_csv(src_path, sep='\t')
     return df
+
 
 def count_documents_paragraphs(df: pd.DataFrame) -> Dict:
     counts = df['doc_id'].value_counts()
     counts = dict(zip(counts.index, counts.values))
     return counts
+
 
 def split_ids(doc_counts: Dict, train_size: int, eval_size: int) -> (List, List):
     train_ids, eval_ids = [], []
@@ -19,7 +22,7 @@ def split_ids(doc_counts: Dict, train_size: int, eval_size: int) -> (List, List)
 
     doc_ids = list(doc_counts.keys())
     random.shuffle(doc_ids)
-    
+
     for doc_id in doc_ids:
         if int_train_size < train_size:
             train_ids.append(doc_id)
@@ -28,7 +31,7 @@ def split_ids(doc_counts: Dict, train_size: int, eval_size: int) -> (List, List)
             eval_ids.append(doc_id)
             int_eval_size += doc_counts[doc_id]
         else:
-            return train_ids, eval_ids  
+            return train_ids, eval_ids
     raise Exception(f'Failed to divide dataset: train_size = {int_train_size}, eval_size = {int_eval_size}')
 
 
@@ -47,17 +50,18 @@ def main():
 
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
-    
+
     df = load_dataframe(src_path)
     doc_counts = count_documents_paragraphs(df)
-    
+
     train_ids, eval_ids = split_ids(doc_counts, args.train_size, args.eval_size)
-    
+
     train_df = df[df['doc_id'].isin(train_ids)].head(args.train_size)
     eval_df = df[df['doc_id'].isin(eval_ids)].head(args.eval_size)
-    
-    train_df.to_csv(train_out_path, sep='\t', index=False)   
+
+    train_df.to_csv(train_out_path, sep='\t', index=False)
     eval_df.to_csv(eval_out_path, sep='\t', index=False)
+
 
 if __name__ == '__main__':
     main()
