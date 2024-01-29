@@ -39,7 +39,7 @@ def main():
     data_files = {'train': f'../data/datasets/{args.dataset}/{args.language}_train.tsv',
                   'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
     model_str = model_name.split('/')[-1]
-    out_dir = f'../models/{model_str}/prove/train_{args.language}_{args.dataset}_test_{args.language}_{args.dataset}_{args.epochs}_{args.learning_rate}'
+    out_dir = f'../models/{model_str}/{args.learning_rate}/{args.language}_{args.dataset}'
 
     # 'microsoft/deberta-v3-xsmall'
     # data_files = {'train': '../data/datasets/wiki/en_train.tsv',
@@ -90,6 +90,7 @@ def main():
         per_device_train_batch_size=8,
         per_device_eval_batch_size=128,
         save_strategy='no',
+        warmup_steps=500
     )
 
     metric = evaluate.load('accuracy')  # , cache_dir=training_args.cache_dir)
