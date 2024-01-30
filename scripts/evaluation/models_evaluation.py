@@ -38,7 +38,7 @@ def load_model_results(results_df, model_dir, model_name):
 
 
 def main():
-    models_dir = '../models'
+    models_dir = '../../models'
     results_df = pd.DataFrame(columns=['dataset', 'model', 'score'])
     for model_name in [model_name for model_name in os.listdir(models_dir) if model_name !='deberta-v3-large']:
         model_dir = os.path.join(models_dir, model_name, f'{lr_map[model_name]}')
@@ -46,7 +46,7 @@ def main():
     bar_plot = sns.barplot(results_df, x='dataset', y='score', hue='model')
     sns.move_legend(bar_plot, 'lower center', bbox_to_anchor=(1, 1))
     fig = bar_plot.get_figure()
-    fig.savefig('results/model_performances_lr_huggingface.png', bbox_inches='tight')
+    fig.savefig('../../data/results/model_performances_lr_huggingface.png', bbox_inches='tight')
 
 
 if __name__ == '__main__':

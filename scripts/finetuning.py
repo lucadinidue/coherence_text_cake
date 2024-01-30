@@ -2,6 +2,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, defa
     Trainer
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 from datasets import load_dataset
+import matplotlib.pyplot as plt
 import numpy as np
 import evaluate
 import argparse
@@ -39,7 +40,7 @@ def main():
     data_files = {'train': f'../data/datasets/{args.dataset}/{args.language}_train.tsv',
                   'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
     model_str = model_name.split('/')[-1]
-    out_dir = f'../models/{model_str}/{args.learning_rate}/{args.language}_{args.dataset}'
+    out_dir = f'../models/{model_str}/{args.language}_{args.dataset}'
 
     # 'microsoft/deberta-v3-xsmall'
     # data_files = {'train': '../data/datasets/wiki/en_train.tsv',
@@ -132,8 +133,14 @@ def main():
             out_file.write(c_r)
 
         cm_disp = ConfusionMatrixDisplay(confusion_matrix=c_m, display_labels=labels)
-        cm_disp.plot(cmap='Blues', xticks_rotation='vertical').figure_.savefig(
+        cm_disp.plot(cmap='Blues', xticks_rotation='vertical', colorbar=False).figure_.savefig(
             os.path.join(predictions_dir, 'confusion_matrix.png'), bbox_inches='tight')
+
+        cm_disp = ConfusionMatrixDisplay.from_predictions(y_true, y_pred, labels=labels, normalize='true')
+        fig, ax = plt.subplots(figsize=(10, 10))
+        cm_disp.plot(cmap='Blues', xticks_rotation='vertical', ax=ax, colorbar=False).figure_.savefig(
+            os.path.join(predictions_dir, 'confusion_matrix_perc.png'), bbox_inches='tight')
+
         return result
 
     data_collator = default_data_collator

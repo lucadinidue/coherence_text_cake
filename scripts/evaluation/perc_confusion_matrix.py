@@ -32,12 +32,12 @@ def compute_confusion_matrix(results_dir):
     cm_disp = ConfusionMatrixDisplay.from_predictions(y_true, y_pred, labels=labels, normalize='true')
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    cm_disp.plot(cmap='Blues', xticks_rotation='vertical', ax=ax, values_format='.2g', colorbar=False).figure_.savefig(
+    cm_disp.plot(cmap='Blues', xticks_rotation='vertical', ax=ax, colorbar=False).figure_.savefig(
         os.path.join(results_dir, 'confusion_matrix_perc.png'), bbox_inches='tight')
 
 
 def main():
-    results_dir = '../../models/deberta-v3-xsmall/4.5e-05/en_wiki/predictions'
+    results_dir = '../../models/deberta-v3-base/en_wiki/predictions'
     compute_confusion_matrix(results_dir)
 
 
