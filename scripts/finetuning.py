@@ -26,8 +26,8 @@ def main():
     model_str = model_name.split('/')[-1]
     out_dir = f'../models/{model_str}_lr{args.learning_rate}/{args.language}_{args.dataset}'
 
-    if os.path.exists(out_dir):
-        return 
+    if os.path.exists(os.path.join(out_dir, 'predictions')):
+        return
 
     dataset = load_dataset('csv', data_files=data_files, sep='\t')
     logger.info(f"Dataset loaded!")
