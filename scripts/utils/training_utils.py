@@ -49,6 +49,9 @@ def train_model(model_name, dataset, logger, out_dir, args):
     train_dataset = preprocess_dataset(dataset['train'], tokenizer, label_to_id)
     eval_dataset = preprocess_dataset(dataset['validation'], tokenizer, label_to_id)
 
+    per_device_train_batch_size = 8 if 'large' not in model_name else 4
+    per_device_eval_batch_size = 128 if 'large' not in model_name else 64
+    
     logger.info(f"Dataset is ready!")
 
     training_args = TrainingArguments(
@@ -58,8 +61,8 @@ def train_model(model_name, dataset, logger, out_dir, args):
         do_train=True,
         do_eval=False,
         evaluation_strategy='epoch',
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=128,
+        per_device_train_batch_size=per_device_train_batch_size,
+        per_device_eval_batch_size=per_device_eval_batch_size,
         save_strategy='no',
         warmup_steps=500
     )
