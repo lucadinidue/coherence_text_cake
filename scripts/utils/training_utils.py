@@ -51,9 +51,6 @@ def train_model(model_name, dataset, logger, out_dir, args):
 
     logger.info(f"Dataset is ready!")
 
-    per_device_train_batch_size = 8 if 'large' not in model_name else 4
-    per_device_eval_batch_size = 128 if 'large' not in model_name else 64
-    
     training_args = TrainingArguments(
         output_dir=out_dir,
         num_train_epochs=args.epochs,
@@ -61,8 +58,8 @@ def train_model(model_name, dataset, logger, out_dir, args):
         do_train=True,
         do_eval=False,
         evaluation_strategy='epoch',
-        per_device_train_batch_size=per_device_train_batch_size,
-        per_device_eval_batch_size=per_device_eval_batch_size,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=128,
         save_strategy='no',
         warmup_steps=500
     )
