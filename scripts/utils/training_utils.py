@@ -1,6 +1,6 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, default_data_collator, TrainingArguments, \
     Trainer
-from eval_utils import save_predictions
+from .eval_utils import save_predictions
 import numpy as np
 import evaluate
 import logging
