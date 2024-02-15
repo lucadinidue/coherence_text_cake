@@ -165,3 +165,4 @@ data/
 *nohup.out
 models/*
 scripts/results/*
+*.sh

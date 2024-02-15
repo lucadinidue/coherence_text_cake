@@ -23,6 +23,7 @@ def compute_model_f1(results_dir):
 
 
 def load_model_results(results_df, model_dir, model_name):
+    model_name = model_name.split('_')[0]
     model_configs_dirs = [dir_name for dir_name in os.listdir(model_dir)]
     for model_config in model_configs_dirs:
         dataset = model_config.split('_')[1]
@@ -31,7 +32,7 @@ def load_model_results(results_df, model_dir, model_name):
             model_result = compute_model_f1(results_dir)
         except:
             model_result = 0
-        new_row = pd.DataFrame.from_dict({'dataset': [dataset], 'model': [model_name], 'score': [model_result]})
+        new_row = pd.DataFrame.from_dict({'dataset': [dataset], 'model': [model_name], 'f1-score': [model_result]})
         results_df = pd.concat([results_df, new_row], ignore_index=True)
     return results_df
 
@@ -44,21 +45,25 @@ def get_hue_order(results_df):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--model_size', type=str, choices=['xsmall', 'small', 'base', 'large'])
+    parser.add_argument('-d', '--model_dir', type=str, default='../../models')
+    parser.add_argument('-o', '--out_path', type=str)
+    # parser.add_argument('-s', '--model_size', type=str, choices=['xsmall', 'small', 'base', 'large'])
     args = parser.parse_args()
-    models_dir = '../../models'
-    results_df = pd.DataFrame(columns=['dataset', 'model', 'score'])
-    for model_name in [model_name for model_name in os.listdir(models_dir) if '-' + args.model_size in model_name]:
-        model_dir = os.path.join(models_dir, model_name)
+    
+    results_df = pd.DataFrame(columns=['dataset', 'model', 'f1-score'])
+    for model_name in [model_name for model_name in os.listdir(args.model_dir) if model_name not in ['old', 'out_domain']]: ## if '-' + args.model_size in model_name]:
+        model_dir = os.path.join(args.model_dir, model_name)
+        if 'base' in model_name:
+            model_dir = os.path.join('/home/luca/Workspace/coherence/models/out_domain_3_epochs_5e-06_lr', model_name)
         if model_name == 'baseline':
             model_dir = os.path.join(model_dir, 'ngrams_1_2')
         results_df = load_model_results(results_df, model_dir, model_name)
     #hue_order =get_hue_order(results_df)
-    # hue_order = ['deberta-v3-xsmall', 'deberta-v3-small', 'deberta-v3-base', 'deberta-v3-large', 'baseline']
-    bar_plot = sns.barplot(results_df, x='dataset', y='score', hue='model')#, hue_order=hue_order)
-    sns.move_legend(bar_plot, 'lower center', bbox_to_anchor=(1, 1))
+    hue_order = ['deberta-v3-xsmall', 'deberta-v3-small', 'deberta-v3-base', 'deberta-v3-large', 'baseline']
+    bar_plot = sns.barplot(results_df, x='dataset', y='f1-score', hue='model', hue_order=hue_order)
+    sns.move_legend(bar_plot, 'lower center', bbox_to_anchor=(0.5, -0.4), ncol=len(results_df.columns))
     fig = bar_plot.get_figure()
-    fig.savefig(f'../../data/results/{args.model_size}.png', bbox_inches='tight')
+    fig.savefig(args.out_path, bbox_inches='tight')
 
 
 if __name__ == '__main__':

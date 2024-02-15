@@ -24,24 +24,30 @@ def apply_swap_perturbation(sentences, swap_idx_1, swap_idx_2):
 
 
 def apply_perturbations(paragraphs_df: pd.DataFrame, out_path: str, num_paragraphs: int) -> None:
+    paragraphs_df.fillna('', inplace=True)
     with tqdm(total=num_paragraphs - 1, desc="Applying perturbations") as pbar:
-        perturbed_paragraphs_df = pd.DataFrame(columns=['passage_id', 'text', 'label'])
+        perturbed_paragraphs_df = pd.DataFrame(
+            columns=['passage_id', 'sentence_0', 'sentence_1', 'sentence_2', 'sentence_3', 'label'])
         for index, row in paragraphs_df.iterrows():
-            perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [
-                ' '.join(row.sentences)] + ['Orig']
+            perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [
+                                                                            f'd{row.doc_id}_{row.passage_id}'] + row.sentences + [
+                                                                            'Orig']
             for sub_idx in range(4):
                 perturbed_sentences = apply_sub_perturbation(row.sentences, row.sub_sentences, sub_idx)
-                perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [
-                    ' '.join(perturbed_sentences)] + [f'sub_{sub_idx}']
+                perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [
+                                                                                f'd{row.doc_id}_{row.passage_id}'] + perturbed_sentences + [
+                                                                                f'sub_{sub_idx}']
             for swap_idx_1, swap_idx_2 in combinations(range(4), 2):
                 perturbed_sentences = apply_swap_perturbation(row.sentences, swap_idx_1, swap_idx_2)
-                perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [f'd{row.doc_id}_{row.passage_id}'] + [
-                    ' '.join(perturbed_sentences)] + [f'swap_{swap_idx_1}_{swap_idx_2}']
+                perturbed_paragraphs_df.loc[len(perturbed_paragraphs_df)] = [
+                                                                                f'd{row.doc_id}_{row.passage_id}'] + perturbed_sentences + [
+                                                                                f'swap_{swap_idx_1}_{swap_idx_2}']
 
             pbar.update(1)
             if len(perturbed_paragraphs_df) >= 1000:  # ogni 1000 paragrafi scrivo sul file per non avere df troppo grandi
                 write_to_out_file(out_path, perturbed_paragraphs_df)
-                perturbed_paragraphs_df = pd.DataFrame(columns=['passage_id', 'text', 'label'])
+                perturbed_paragraphs_df = pd.DataFrame(
+                    columns=['passage_id', 'sentence_0', 'sentence_1', 'sentence_2', 'sentence_3', 'label'])
 
     if not perturbed_paragraphs_df.empty:
         write_to_out_file(out_path, perturbed_paragraphs_df)
@@ -60,7 +66,7 @@ def main():
     args = parser.parse_args()
 
     paragraphs_dir = f'../../data/src/train_eval_splits/{args.dataset}'
-    out_dir = f'../../data/datasets/{args.dataset}/'
+    out_dir = f'../../data/baseline_datasets/{args.dataset}/'
 
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)

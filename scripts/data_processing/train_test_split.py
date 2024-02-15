@@ -43,6 +43,8 @@ def main():
     parser.add_argument('-e', '--eval_size', type=int, default=2000)
     args = parser.parse_args()
 
+    random.seed(42)
+
     src_path = f'../../data/src/all_paragraphs/{args.dataset}/{args.language}.tsv'
     out_dir = f'../../data/src/train_eval_splits/{args.dataset}'
     train_out_path = os.path.join(out_dir, f'{args.language}_train.tsv')

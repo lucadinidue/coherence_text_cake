@@ -1,7 +1,7 @@
 from utils.training_utils import *
 from utils.eval_utils import *
 
-from transformers import set_seed,enable_full_determinism
+from transformers import set_seed
 from datasets import load_dataset
 import argparse
 import torch
@@ -12,11 +12,10 @@ def main():
     parser.add_argument('-l', '--language', choices=['en', 'es', 'id', 'it', 'nl'])
     parser.add_argument('-d', '--dataset', choices=['ted', 'wiki', 'news', 'fanfic'])
     parser.add_argument('-m', '--model')
-    parser.add_argument('-e', '--epochs', type=int, default=10)
+    parser.add_argument('-e', '--epochs', type=int, default=3)
     parser.add_argument('-r', '--learning_rate', type=float, default=2e-05)
     args = parser.parse_args()
 
-    enable_full_determinism(42)
     set_seed(42)
 
     logger = init_logging()
@@ -29,9 +28,12 @@ def main():
                   'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
 
     model_str = model_name.split('/')[-1]
-    out_dir = f'../models/{model_str}_{args.epochs}_epochs/{args.language}_{args.dataset}'
+    out_dir = f'../models/multi_lingual_{args.learning_rate}/{args.language}_{args.dataset}'
 
-    if os.path.exists(os.path.join(out_dir, 'predictions')):
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    if os.path.exists(os.path.join(out_dir, 'predictions', 'classification_report.txt')):
         return
 
     dataset = load_dataset('csv', data_files=data_files, sep='\t')
