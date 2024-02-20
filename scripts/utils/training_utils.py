@@ -54,17 +54,21 @@ def train_model(model_name, dataset, logger, out_dir, args):
     
     logger.info(f"Dataset is ready!")
 
+    eval_delay = args.epochs - 1
+    
     training_args = TrainingArguments(
         output_dir=out_dir,
         num_train_epochs=args.epochs,
         learning_rate=args.learning_rate,
         do_train=True,
         do_eval=False,
+        gradient_accumulation_steps=4,
         evaluation_strategy='epoch',
+        eval_delay=eval_delay,
         per_device_train_batch_size=per_device_train_batch_size,
         per_device_eval_batch_size=per_device_eval_batch_size,
         save_strategy='no',
-        warmup_steps=500
+        warmup_ratio=0.1
     )
 
     metric = evaluate.load('accuracy')  # , cache_dir=training_args.cache_dir)

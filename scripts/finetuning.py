@@ -28,7 +28,7 @@ def main():
                   'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
 
     model_str = model_name.split('/')[-1]
-    out_dir = f'../models/multi_lingual_{args.learning_rate}/{args.language}_{args.dataset}'
+    out_dir = f'../models/multilingual/{args.language}_{args.dataset}'
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
