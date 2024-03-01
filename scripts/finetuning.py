@@ -11,6 +11,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--language', choices=['en', 'es', 'id', 'it', 'nl'])
     parser.add_argument('-d', '--dataset', choices=['ted', 'wiki', 'news', 'fanfic'])
+    parser.add_argument('-o', '--out_dir')
     parser.add_argument('-m', '--model')
     parser.add_argument('-e', '--epochs', type=int, default=3)
     parser.add_argument('-r', '--learning_rate', type=float, default=2e-05)
@@ -28,7 +29,9 @@ def main():
                   'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
 
     model_str = model_name.split('/')[-1]
-    out_dir = f'../models/multilingual/{args.language}_{args.dataset}'
+    out_dir = f'../models/{args.out_dir}/{args.language}_{args.dataset}'
+
+    print(f'Output in: {out_dir}')
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
