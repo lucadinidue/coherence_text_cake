@@ -7,7 +7,7 @@ import shutil
 import torch
 import os
 
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -26,18 +26,18 @@ def preprocess_dataset(dataset, tokenizer):
     return tokenized_dataset
 
 
-def prepare_dataloaders(args, tokenizer):
-    data_files = {'train': f'../data/datasets/{args.dataset}/{args.language}_train.tsv',
-                  'validation': f'../data/datasets/{args.dataset}/{args.language}_eval.tsv'}
+def prepare_dataloaders(dataset, language, batch_size, tokenizer):
+    data_files = {'train': f'../data/datasets/{dataset}/{language}_train.tsv',
+                  'validation': f'../data/datasets/{dataset}/{language}_eval.tsv'}
 
     dataset = load_dataset('csv', data_files=data_files, sep='\t')
     train_dataset = preprocess_dataset(dataset['train'], tokenizer)
     eval_dataset = preprocess_dataset(dataset['validation'], tokenizer)
 
     train_dataloader = DataLoader(train_dataset, shuffle=False, collate_fn=default_data_collator,
-                                  batch_size=args.batch_size)
+                                  batch_size=batch_size)
     eval_dataloader = DataLoader(eval_dataset, shuffle=False, collate_fn=default_data_collator,
-                                 batch_size=args.batch_size)
+                                 batch_size=batch_size)
 
     return train_dataloader, eval_dataloader
 
@@ -48,10 +48,10 @@ def save_tensor_chunk(tensor, out_dir, chunk_idx):
         if not os.path.exists(layer_dir):
             os.makedirs(layer_dir)
         out_path = os.path.join(layer_dir, f'{chunk_idx}.pt')
-        torch.save(tensor, out_path)
+        torch.save(tensor[layer_idx], out_path)
 
 
-def extract_representations(model, dataloader, out_dir):
+def extract_representations(model, dataloader, out_dir, slice):
     chunk_idx = 0
     all_hidden_states = None
     model.eval()
@@ -76,10 +76,37 @@ def extract_representations(model, dataloader, out_dir):
             all_hidden_states = average_hidden_states if all_hidden_states is None else torch.cat(
                 (all_hidden_states, average_hidden_states), dim=1)
 
-            if all_hidden_states.shape[1] > 10000:
+            if slice and all_hidden_states.shape[1] > 10000:
                 save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
                 chunk_idx += 1
                 all_hidden_states = None
+        if all_hidden_states is not None:
+            save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
+
+
+def extract_sentence_representations(model_name, language, dataset, batch_size=8, slice=False):
+    model_str = model_name.split('/')[1]
+    out_dir = f'../data/probing_datasets/{dataset}/{language}/{model_str}'
+
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+
+    model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, return_tensors='pt')
+
+    print(f'Device = {device}')
+
+    model.to(device)
+
+    train_dataloader, eval_dataloader = prepare_dataloaders(dataset, language, batch_size, tokenizer)
+
+    print('Extracting training set representations')
+    train_out_dir = os.path.join(out_dir, 'train')
+    extract_representations(model, train_dataloader, train_out_dir, slice)
+
+    print('Extracting validation set representations')
+    eval_out_dir = os.path.join(out_dir, 'eval')
+    extract_representations(model, eval_dataloader, eval_out_dir, slice)
 
 
 def main():
@@ -88,30 +115,10 @@ def main():
     parser.add_argument('-l', '--language', type=str)
     parser.add_argument('-d', '--dataset', type=str)
     parser.add_argument('-b', '--batch_size', type=int, default=8)
+    parser.add_argument('-s', '--slice_tensor', action='store_true')
     args = parser.parse_args()
 
-    model_str = args.model_name.split('/')[1]
-    out_dir = f'../data/probing_datasets/{args.dataset}/{args.language}/{model_str}'
-
-    if os.path.exists(out_dir):
-        shutil.rmtree(out_dir)
-
-    model = AutoModel.from_pretrained(args.model_name, output_hidden_states=True)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=False, return_tensors='pt')
-
-    print(f'Device = {device}')
-
-    model.to(device)
-    
-    train_dataloader, eval_dataloader = prepare_dataloaders(args, tokenizer)
-
-    print('Extracting training set representations')
-    train_out_dir = os.path.join(out_dir, 'train')
-    extract_representations(model, train_dataloader, train_out_dir)
-
-    print('Extracting validation set representations')
-    eval_out_dir = os.path.join(out_dir, 'eval')
-    extract_representations(model, eval_dataloader, eval_out_dir)
+    extract_sentence_representations(args.model_name, args.language, args.dataset, args.batch_size, args.slice)
 
 
 if __name__ == '__main__':
