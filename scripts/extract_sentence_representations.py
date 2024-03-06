@@ -84,15 +84,29 @@ def extract_representations(model, dataloader, out_dir, slice):
             save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
 
 
-def extract_sentence_representations(model_name, language, dataset, batch_size=8, slice=False):
-    model_str = model_name.split('/')[1]
-    out_dir = f'../data/probing_datasets/{dataset}/{language}/{model_str}'
+def get_pretrained_model_name(model_name):
+    if 'xsmall' in model_name:
+        return 'microsoft/deberta-v3-xsmall'
+    if 'small' in model_name:
+        return 'microsoft/deberta-v3-small'
+    if 'base' in model_name:
+        return 'microsoft/deberta-v3-base'
+    if 'large' in model_name:
+        return 'microsoft/deberta-v3-large'
+    else:
+        raise Exception(f'Tokenizer not found for model {model_name}')
 
+
+def extract_sentence_representations(model_name, language, dataset, out_dir, batch_size=8, slice=False):
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
 
     model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, return_tensors='pt')
+    tokenizer_name = get_pretrained_model_name(model_name)
+    print(f'Model = {model_name}')
+    print(f'Tokenizer = {tokenizer_name}')
+
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=False, return_tensors='pt')
 
     print(f'Device = {device}')
 

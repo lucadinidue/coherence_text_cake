@@ -1,4 +1,4 @@
-from extract_sentence_representations import extract_sentence_representations
+from extract_sentence_representations import extract_sentence_representations, get_pretrained_model_name
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
@@ -46,16 +46,18 @@ def main():
     parser.add_argument('-m', '--model_name', type=str)
     parser.add_argument('-l', '--language', type=str)
     parser.add_argument('-d', '--dataset', type=str)
-    parser.add_argument('-b', '--batch_size', type=int, default=8)
+    parser.add_argument('-b', '--batch_size', type=int, default=64)
     parser.add_argument('-y', '--layer', type=int)
     parser.add_argument('-p', '--probing_model', type=str, choices=['mlp', 'svc'], default='mlp')
     parser.add_argument('-s', '--slice_tensor', action='store_true')
+    parser.add_argument('-o', '--out_dir', type=str, default='finetuned')
     args = parser.parse_args()
 
-    model_str = args.model_name.split('/')[1]
-    representations_dir = f'../data/probing_datasets/{args.dataset}/{args.language}/{model_str}'
+    pt_model_name = get_pretrained_model_name(args.model_name)
+    model_str = pt_model_name.split('/')[1]
+    representations_dir = f'../data/probing_datasets_finetuned/{args.dataset}/{args.language}/{model_str}'
     dataset_dir = f'../data/datasets/{args.dataset}'
-    out_dir = f'../models/probing_predictions/pretrained/{model_str}/{args.layer}/'
+    out_dir = f'../models/probing_predictions/{args.out_dir}/{model_str}/{args.layer}/'
 
     out_path = os.path.join(out_dir, f'{args.language}_{args.dataset}.tsv')
     if os.path.exists(out_path):
@@ -65,7 +67,8 @@ def main():
         os.makedirs(out_dir)
 
     if not os.path.exists(representations_dir):
-        extract_sentence_representations(args.model_name, args.language, args.dataset, batch_size=64, slice=False)
+        extract_sentence_representations(args.model_name, args.language, args.dataset, representations_dir,
+                                         batch_size=args.batch_size, slice=args.slice_tensor)
 
     representations_paths = {
         'train': os.path.join(representations_dir, 'train'),
