@@ -50,38 +50,66 @@ def save_tensor_chunk(tensor, out_dir, chunk_idx):
         out_path = os.path.join(layer_dir, f'{chunk_idx}.pt')
         torch.save(tensor[layer_idx], out_path)
 
-
-def extract_representations(model, dataloader, out_dir, slice):
+def extract_representations(model, dataloader, out_dir, slice_tensor):
     chunk_idx = 0
     all_hidden_states = None
     model.eval()
     with torch.no_grad():
         for batch_cpu in tqdm(dataloader):
             batch = {key: value.to(device) for key, value in batch_cpu.items()}
-            hidden_states = model(**batch)['hidden_states']
-            hidden_states = torch.stack(hidden_states, dim=1)
-
+            hidden_states = model(**batch)['hidden_states']        
             non_pad_tokens = batch['attention_mask'].sum(axis=1)
-            mask = batch['attention_mask'].unsqueeze(1).unsqueeze(3)  # batch_size, 1, max_sequence_len, 1
-            mask = mask.expand(-1, hidden_states.shape[1], -1,
-                               hidden_states.shape[-1])  # batch_size, num_layers + 1, max_sequence_len, hidden_size
-
+            hidden_states = torch.stack(hidden_states, dim=1)
+    
+            mask = batch['attention_mask']
+            mask = mask.view(mask.shape[0], 1, mask.shape[1], 1).expand(hidden_states.shape)
             masked_hidden_states = hidden_states * mask
             masked_hidden_states = masked_hidden_states[:, 1:, :, :]
             sum_hidden_states = torch.sum(masked_hidden_states, dim=2)
             average_hidden_states = torch.div(sum_hidden_states,
                                               non_pad_tokens.view(-1, 1, 1))  # batch_size, num_layers + 1, hidden_size
-            average_hidden_states = torch.reshape(average_hidden_states,
-                                                  (average_hidden_states.shape[1], average_hidden_states.shape[0], -1))
+            average_hidden_states = average_hidden_states.transpose(0, 1)
             all_hidden_states = average_hidden_states if all_hidden_states is None else torch.cat(
                 (all_hidden_states, average_hidden_states), dim=1)
-
-            if slice and all_hidden_states.shape[1] > 10000:
+            
+            if slice_tensor and all_hidden_states.shape[1] > 10000:
                 save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
                 chunk_idx += 1
                 all_hidden_states = None
         if all_hidden_states is not None:
             save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
+
+# def extract_representations(model, dataloader, out_dir, slice):
+#     chunk_idx = 0
+#     all_hidden_states = None
+#     model.eval()
+#     with torch.no_grad():
+#         for batch_cpu in tqdm(dataloader):
+#             batch = {key: value.to(device) for key, value in batch_cpu.items()}
+#             hidden_states = model(**batch)['hidden_states']
+#             hidden_states = torch.stack(hidden_states, dim=1)
+
+#             non_pad_tokens = batch['attention_mask'].sum(axis=1)
+#             mask = batch['attention_mask'].unsqueeze(1).unsqueeze(3)  # batch_size, 1, max_sequence_len, 1
+#             mask = mask.expand(-1, hidden_states.shape[1], -1,
+#                                hidden_states.shape[-1])  # batch_size, num_layers + 1, max_sequence_len, hidden_size
+
+#             masked_hidden_states = hidden_states * mask
+#             masked_hidden_states = masked_hidden_states[:, 1:, :, :]
+#             sum_hidden_states = torch.sum(masked_hidden_states, dim=2)
+#             average_hidden_states = torch.div(sum_hidden_states,
+#                                               non_pad_tokens.view(-1, 1, 1))  # batch_size, num_layers + 1, hidden_size
+#             average_hidden_states = torch.reshape(average_hidden_states,
+#                                                   (average_hidden_states.shape[1], average_hidden_states.shape[0], -1))
+#             all_hidden_states = average_hidden_states if all_hidden_states is None else torch.cat(
+#                 (all_hidden_states, average_hidden_states), dim=1)
+
+#             if slice and all_hidden_states.shape[1] > 10000:
+#                 save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
+#                 chunk_idx += 1
+#                 all_hidden_states = None
+#         if all_hidden_states is not None:
+#             save_tensor_chunk(all_hidden_states, out_dir, chunk_idx)
 
 
 def get_pretrained_model_name(model_name):
