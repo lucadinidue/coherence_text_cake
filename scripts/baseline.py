@@ -6,17 +6,39 @@ from spacy.lang.en import English
 from datasets import load_dataset
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import spacy_udpipe
 import argparse
+import spacy
 import os
 
 
-def get_tokenizer(language):
-    if language == 'en':
-        nlp = English()
-    else:
-        raise Exception(f'Language {language} not implemented yet!')
-    return nlp.tokenizer
+# def get_tokenizer(language):
+#     if language == 'en':
+#         nlp = English()
+#     else:
+#         raise Exception(f'Language {language} not implemented yet!')
+#     return nlp.tokenizer
 
+def get_tokenizer_name(language):
+    if language == 'it':
+        return 'it_core_news_sm'
+    elif language == 'es':
+        return 'es_core_news_sm'
+    elif language == 'nl':
+        return 'nl_core_news_sm'
+    elif language == 'en':
+        return 'en_core_web_sm'
+    elif language in ['id', 'ko']:
+        return language
+
+def get_tokenizer(language):
+    tokenizer_name  = get_tokenizer_name(language)
+    if language in ['id', 'ko']:
+        nlp = spacy_udpipe.load(get_sentence_splitter_name(language))
+    else:
+        nlp = spacy.load(tokenizer_name)
+    return nlp.tokenizer
+    
 
 def extract_passage_ngrams(passage_ngrams, sent_idx, tokens, n):
     for i in range(0, len(tokens) - n + 1):

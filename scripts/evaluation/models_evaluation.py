@@ -61,9 +61,9 @@ def get_hue_order(results_df):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--model_dir_name', type=str, )
+    parser.add_argument('-i', '--model_dir_name', type=str)
     parser.add_argument('-o', '--out_path', type=str)
-    parser.add_argument('-t', '--type', type=str)
+    parser.add_argument('-t', '--type', type=str, choices=['monolingual', 'multilingual'])
     # parser.add_argument('-s', '--model_size', type=str, choices=['xsmall', 'small', 'base', 'large'])
     args = parser.parse_args()
 
@@ -85,12 +85,13 @@ def main():
     # hue_order = get_hue_order(results_df)
 
     if args.type == 'monolingual':
-        ncol = 4
-        hue_order = ['deberta-v3-xsmall', 'deberta-v3-small', 'deberta-v3-base', 'deberta-v3-large']
+        ncol = 3
+        hue_order = ['deberta-v3-xsmall', 'deberta-v3-small', 'deberta-v3-base', 'deberta-v3-large', 'baseline']
         bar_plot = sns.barplot(results_df, x='dataset', y='f1-score', hue='model', hue_order=hue_order)
     else:
         ncol = 5
         bar_plot = sns.barplot(results_df, x='dataset', y='f1-score', hue='language')
+        bar_plot.set_ylim(0, 0.6)
     sns.move_legend(bar_plot, 'lower center', bbox_to_anchor=(0.5, -0.4), ncol=ncol)
     fig = bar_plot.get_figure()
     fig.savefig(out_path, bbox_inches='tight')
