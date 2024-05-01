@@ -34,7 +34,7 @@ def get_tokenizer_name(language):
 def get_tokenizer(language):
     tokenizer_name  = get_tokenizer_name(language)
     if language in ['id', 'ko']:
-        nlp = spacy_udpipe.load(get_sentence_splitter_name(language))
+        nlp = spacy_udpipe.load(get_tokenizer_name(language))
     else:
         nlp = spacy.load(tokenizer_name)
     return nlp.tokenizer
