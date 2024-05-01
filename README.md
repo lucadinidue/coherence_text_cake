@@ -1,14 +1,1 @@
-To Do:
-
-1) Dataset Construction
-
-  - [X] Create 80-20 splits
-  - [X] Apply all perturbations
-
-3) Monolingual Experiments
-  - [ ] In Domain
-     - [ ] DeBERTa V3 - XSmall
-     - [ ] DeBERTa V3 - Small
-     - [ ] DeBERTa V3 - Medium
-     - [ ] DeBERTa V3 - Large
-  - [ ] Out Domain (leave-one-out)
+Code for <img src="https://github.com/lucadinidue/coherence/assets/28627385/6b7db2e7-7526-404b-80e1-2893f5bd40e2" alt="drawing" width="30"/> **Text-Cake**: Challenging Language Models on Local Text Coherence 
